@@ -1,3 +1,4 @@
+import { CodeLoadingPolicy } from "@opencode/core/plugin/code-loading-policy"
 import { describe, expect } from "bun:test"
 import { LLM, LanguageModel, Message } from "@opencode/ai"
 import { OpenAIChat } from "@opencode/ai/protocols"
@@ -400,7 +401,18 @@ describe("ModelResolver", () => {
       },
       model: () => Effect.die("unused"),
     })
-    const layer = ModelResolver.layer.pipe(Layer.provide(Layer.mergeAll(providers, models, integrations, npm, aisdk)))
+    const layer = ModelResolver.layer.pipe(
+      Layer.provide(
+        Layer.mergeAll(
+          providers,
+          models,
+          integrations,
+          npm,
+          aisdk,
+          Layer.succeed(CodeLoadingPolicy.Service, { compiledOnly: false }),
+        ),
+      ),
+    )
 
     return withConfigEnv({}, () =>
       Effect.gen(function* () {

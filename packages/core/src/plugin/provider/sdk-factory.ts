@@ -2,7 +2,12 @@ import { Effect } from "effect"
 import { Npm } from "@opencode/util/npm"
 import { importModule, resolveModule } from "@opencode/util/runtime-import"
 
-export const loadSDKFactory = Effect.fnUntraced(function* (npm: Npm.Interface, packageName: string) {
+export const loadSDKFactory = Effect.fnUntraced(function* (
+  npm: Npm.Interface,
+  packageName: string,
+  compiledOnly = false,
+) {
+  if (compiledOnly) return yield* Effect.die(new Error("External AI SDK packages are disabled by compiled-only policy"))
   const installedPath = packageName.startsWith("file://")
     ? packageName
     : yield* npm.add(packageName).pipe(

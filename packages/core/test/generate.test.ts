@@ -1,3 +1,4 @@
+import { CodeLoadingPolicy } from "@opencode/core/plugin/code-loading-policy"
 import { expect } from "bun:test"
 import { LanguageModel, LLMClient } from "@opencode/ai"
 import { RequestExecutor } from "@opencode/ai/route"
@@ -62,7 +63,18 @@ const aisdk = Layer.mock(AISDK.Service, {
 })
 const client = TestLLM.testLayer({ fallback: TestLLM.text("OK", "generate") })
 
-const resolver = ModelResolver.layer.pipe(Layer.provide(Layer.mergeAll(providers, models, integrations, npm, aisdk)))
+const resolver = ModelResolver.layer.pipe(
+  Layer.provide(
+    Layer.mergeAll(
+      providers,
+      models,
+      integrations,
+      npm,
+      aisdk,
+      Layer.succeed(CodeLoadingPolicy.Service, { compiledOnly: false }),
+    ),
+  ),
+)
 const it = testEffect(Generate.layer.pipe(Layer.provide(Layer.merge(resolver, client))))
 const resolverIt = testEffect(resolver)
 

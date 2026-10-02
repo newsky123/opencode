@@ -1,3 +1,4 @@
+import { CodeLoadingPolicy } from "./code-loading-policy.js"
 export * as PluginSupervisor from "./supervisor.js"
 
 import { Event } from "@opencode/schema/config"
@@ -239,6 +240,7 @@ export const layer = Layer.effectDiscard(
 )
 
 const nodeDeps = [
+  CodeLoadingPolicy.node,
   Plugin.node,
   SdkPlugins.node,
   InstancePlugins.node,

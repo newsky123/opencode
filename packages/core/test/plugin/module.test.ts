@@ -1,3 +1,4 @@
+import { CodeLoadingPolicy } from "@opencode/core/plugin/code-loading-policy"
 import { expect } from "bun:test"
 import path from "node:path"
 import { Deferred, Effect, Exit, Fiber, Layer, Schedule, Scope, Stream } from "effect"
@@ -11,7 +12,8 @@ import { tmpdirScoped } from "../fixture/tmpdir"
 import { testEffect } from "../lib/effect"
 
 const it = testEffect(
-  Layer.merge(
+  Layer.mergeAll(
+    Layer.succeed(CodeLoadingPolicy.Service, { compiledOnly: false }),
     AppNodeBuilder.build(Npm.node, [Global.node.replace(tempGlobalLayer)]),
     Watcher.layer().pipe(Layer.provide(Watcher.nativeLayer)),
   ),

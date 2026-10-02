@@ -96,6 +96,17 @@ export class Info extends Schema.Class<Info>("Config.Info")({
   websearch: ConfigWebSearch.Selection.pipe(optional).annotate({
     description: "Web search provider selection",
   }),
+  openchamber: Schema.Struct({
+    agentTools: Schema.Struct({
+      control: Schema.Boolean.pipe(optional),
+      web: Schema.Boolean.pipe(optional),
+      memory: Schema.Boolean.pipe(optional),
+      notify: Schema.Boolean.pipe(optional),
+      codeMode: Schema.Boolean.pipe(optional),
+    }).pipe(optional),
+  })
+    .pipe(optional)
+    .annotate({ description: "Data-only settings for the compiled OpenChamber adapter" }),
   plugins: ConfigPlugin.Plugins.pipe(optional).annotate({
     description: "Ordered plugin enablement directives and external package declarations",
   }),

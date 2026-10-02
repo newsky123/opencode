@@ -134,7 +134,9 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
               "log",
               "repos",
             ]).pipe(
-              Argument.withDescription("Print only one path: db, home, data, config, cache, state, tmp, bin, log, repos"),
+              Argument.withDescription(
+                "Print only one path: db, home, data, config, cache, state, tmp, bin, log, repos",
+              ),
               Argument.optional,
             ),
           },
@@ -546,6 +548,14 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
         ),
         service: Flag.boolean("service").pipe(Flag.withDefault(false)),
         stdio: Flag.boolean("stdio").pipe(Flag.withDefault(false)),
+        compiledPluginsOnly: Flag.boolean("compiled-plugins-only").pipe(
+          Flag.withDescription("Allow only compiled plugins and provider packages; ignore external plugin sources"),
+          Flag.withDefault(false),
+        ),
+        openchamberBootstrap: Flag.boolean("openchamber-bootstrap").pipe(
+          Flag.withDescription("Read the private OpenChamber bootstrap from stdin (requires --compiled-plugins-only)"),
+          Flag.withDefault(false),
+        ),
       },
     }),
   ],

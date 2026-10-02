@@ -103,10 +103,20 @@ const builtins = new Map<string, () => Promise<unknown>>([
   ],
 ])
 
-export const loadPackage = Effect.fn("Provider.loadPackage")(function* (input: string, npm?: Npm.Interface) {
+export const loadPackage = Effect.fn("Provider.loadPackage")(function* (
+  input: string,
+  npm?: Npm.Interface,
+  compiledOnly = false,
+) {
   const specifier = packageName(input)
   const builtin = builtins.get(specifier)
   if (builtin) return yield* importPackage(specifier, specifier, builtin)
+  // Reject before resolution, cache lookup, installation, or importing any external code.
+  if (compiledOnly)
+    return yield* new LoadError({
+      package: specifier,
+      cause: new Error("External provider packages are disabled by compiled-only policy"),
+    })
   const resolved = yield* Effect.sync(() => {
     if (specifier.startsWith("file://") || specifier.startsWith("@opencode/ai/")) return specifier
     try {

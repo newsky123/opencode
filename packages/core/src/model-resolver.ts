@@ -1,3 +1,4 @@
+import { CodeLoadingPolicy } from "./plugin/code-loading-policy.js"
 export * as ModelResolver from "./model-resolver.js"
 
 import { makeLocationNode } from "@opencode/util/effect/app-node"
@@ -283,7 +284,10 @@ function prepareProviderSettings(
   )
 }
 
-function prepareProviderURL(model: RuntimeInfo, baseURL: string): Effect.Effect<string, UnresolvedProviderVariablesError> {
+function prepareProviderURL(
+  model: RuntimeInfo,
+  baseURL: string,
+): Effect.Effect<string, UnresolvedProviderVariablesError> {
   if (!baseURL.includes("${")) return Effect.succeed(baseURL)
   const prepared = baseURL.replace(/\$\{([^}]+)\}/g, (placeholder, name: string) => process.env[name] ?? placeholder)
   const failure = unresolvedProviderVariables(model, prepared)
@@ -354,6 +358,7 @@ export const layer = Layer.effect(
     const providers = yield* Provider.Service
     const models = yield* Model.Service
     const integrations = yield* Integration.Service
+    const policy = yield* CodeLoadingPolicy.Service
     const npm = yield* Npm.Service
     const aisdk = yield* AISDK.Service
     const load = Effect.fn("ModelResolver.resolveModel")(function* (selected: Info, variant?: VariantID) {
@@ -368,7 +373,7 @@ export const layer = Layer.effect(
         settings: Provider.mergeOverlay(provider?.settings, Provider.modelSettings(selectedVariant.settings)),
       }
       const model = yield* fromCatalogModel(runtimeInfo, credential, {
-        loadPackage: (specifier) => Provider.loadPackage(specifier, npm),
+        loadPackage: (specifier) => Provider.loadPackage(specifier, npm, policy.compiledOnly),
         loadAISDK: (model) => aisdk.model(model),
       })
       const runtime =
@@ -461,5 +466,5 @@ function usesAPIKeyAuth(packageName: string | undefined) {
 export const node = makeLocationNode({
   service: Service,
   layer,
-  deps: [Provider.node, Model.node, Integration.node, Npm.node, AISDK.node],
+  deps: [Provider.node, Model.node, Integration.node, Npm.node, AISDK.node, CodeLoadingPolicy.node],
 })
