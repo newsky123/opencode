@@ -1,3 +1,4 @@
+import { CodeLoadingPolicy } from "./code-loading-policy.js"
 export * as PluginModule from "./module.js"
 
 import type { Plugin } from "@opencode/plugin/effect/plugin"
@@ -14,6 +15,7 @@ import { PluginPromise } from "./promise.js"
 import { Watcher } from "../filesystem/watcher.js"
 
 export const make = Effect.fn("PluginModule.make")(function* () {
+  const policy = yield* CodeLoadingPolicy.Service
   const watcher = yield* Watcher.Service
   const scope = yield* Effect.scope
   const runPromise = yield* FiberSet.makeRuntimePromise()
@@ -40,7 +42,10 @@ export const make = Effect.fn("PluginModule.make")(function* () {
     load: (
       operation: Extract<ConfigPluginSource.Operation, { type: "add" }>,
       options?: { readonly install?: boolean },
-    ) => load(operation, sources, options),
+    ) =>
+      policy.compiledOnly
+        ? Effect.fail(new LoadError({ message: "External plugins are disabled by compiled-only policy" }))
+        : load(operation, sources, options),
     changes: () => Stream.fromPubSub(changes),
   }
 })

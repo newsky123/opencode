@@ -1,3 +1,4 @@
+import { CodeLoadingPolicy } from "../code-loading-policy.js"
 import { Effect } from "effect"
 import { define } from "@opencode/plugin/effect/plugin"
 import { Npm } from "@opencode/util/npm"
@@ -7,6 +8,7 @@ import { loadSDKFactory } from "./sdk-factory.js"
 export const SapAICorePlugin = define({
   id: "opencode.provider.sap.ai.core",
   effect: Effect.fn(function* (ctx) {
+    const policy = yield* CodeLoadingPolicy.Service
     const npm = yield* Npm.Service
     yield* ctx.aisdk.hook(
       "sdk",
@@ -17,7 +19,7 @@ export const SapAICorePlugin = define({
           (typeof evt.options.serviceKey === "string" ? evt.options.serviceKey : undefined)
         if (serviceKey && !process.env.AICORE_SERVICE_KEY) process.env.AICORE_SERVICE_KEY = serviceKey
 
-        const factory = yield* loadSDKFactory(npm, evt.package)
+        const factory = yield* loadSDKFactory(npm, evt.package, policy.compiledOnly)
         if (typeof factory !== "function")
           return yield* Effect.die(new Error(`Package ${evt.package} provider factory export is not callable`))
 

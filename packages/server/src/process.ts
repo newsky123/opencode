@@ -1,3 +1,4 @@
+import type { ManagedRuntime } from "./managed-runtime"
 export * as ServerProcess from "./process"
 
 import { NodeHttpServer } from "@effect/platform-node"
@@ -47,6 +48,7 @@ export const start = Effect.fn("ServerProcess.start")(function* <E, R>(
   options: ServerOptions,
   lifecycle?: Lifecycle<E, R>,
   transform?: Transform,
+  runtime?: ManagedRuntime.Runtime,
 ) {
   const password = options.password
   if (!password) return yield* Effect.fail(new Error("Missing server password"))
@@ -98,6 +100,7 @@ export const start = Effect.fn("ServerProcess.start")(function* <E, R>(
           password,
         },
         urls,
+        runtime?.replacements,
       ).pipe(Layer.provideMerge(NodeHttpServer.layerHttpServices)),
       applicationScope,
     )

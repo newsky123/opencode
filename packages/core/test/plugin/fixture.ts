@@ -1,3 +1,5 @@
+import { CodeLoadingPolicy } from "@opencode/core/plugin/code-loading-policy"
+import { OpenChamber } from "@opencode/core/plugin/openchamber"
 import { Agent } from "@opencode/core/agent"
 import { AISDK } from "@opencode/core/aisdk"
 import { Command } from "@opencode/core/command"
@@ -68,6 +70,8 @@ const permissionLayer = Layer.succeed(
 
 export const PluginTestLayer = AppNodeBuilder.build(
   LayerNode.group([
+    CodeLoadingPolicy.node,
+    OpenChamber.node,
     AppProcess.node,
     FileSystem.node,
     FSUtil.node,

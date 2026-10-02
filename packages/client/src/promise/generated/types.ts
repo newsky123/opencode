@@ -2135,6 +2135,9 @@ export type ConfigEntry =
             | { path: string; description?: string; hidden?: boolean }
         }
         websearch?: false | { provider: "random" | (string & {}) }
+        openchamber?: {
+          agentTools?: { control?: boolean; web?: boolean; memory?: boolean; notify?: boolean; codeMode?: boolean }
+        }
         plugins?: Array<string | { package: string; options?: { [x: string]: JsonValue } }>
         worktree?: ConfigWorktree
         warming?: boolean | { prompt?: string; interval?: string; duration?: string }

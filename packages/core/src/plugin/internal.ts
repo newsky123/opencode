@@ -1,3 +1,5 @@
+import { CodeLoadingPolicy } from "./code-loading-policy.js"
+import { OpenChamber } from "./openchamber.js"
 export * as PluginInternal from "./internal.js"
 
 import { LLMClient } from "@opencode/ai"
@@ -105,6 +107,8 @@ import { WarmingPlugin } from "./warming.js"
 import { WellKnownPlugin } from "../wellknown/plugin.js"
 
 const services = [
+  CodeLoadingPolicy.Service,
+  OpenChamber.Service,
   Agent.Service,
   AppProcess.Service,
   Provider.Service,
@@ -158,6 +162,8 @@ const services = [
 export type Requirements = Context.Service.Identifier<(typeof services)[number]>
 
 export const requirements = LayerNode.group([
+  CodeLoadingPolicy.node,
+  OpenChamber.node,
   Agent.node,
   AppProcess.node,
   Provider.node,
@@ -211,6 +217,7 @@ export const requirements = LayerNode.group([
 export type InternalPlugin = Plugin<Requirements | Scope.Scope>
 
 const pre = [
+  OpenChamber.Plugin,
   ToolInputRepairPlugin.Plugin,
   ConfigWorktreePlugin.Plugin,
   ConfigMcpPlugin.Plugin,
@@ -273,13 +280,16 @@ export const guarded: ReadonlySet<string> = new Set([OpencodePlugin.id, ConfigPo
 export const list = Effect.fn("PluginInternal.list")(function* () {
   // Capture only services; activation supplies the child Scope and batching context.
   const context = Context.pick(...services)(yield* Effect.context<Requirements>())
+  const managed = yield* OpenChamber.Service
   const resolve = (plugins: readonly InternalPlugin[]) =>
-    plugins.map(
-      (plugin): Plugin => ({
-        id: plugin.id,
-        effect: (host) => plugin.effect(host).pipe(Effect.provide(context)),
-      }),
-    )
+    plugins
+      .filter((plugin) => !managed.enabled || plugin.id !== BrowserPlugin.id)
+      .map(
+        (plugin): Plugin => ({
+          id: plugin.id,
+          effect: (host) => plugin.effect(host).pipe(Effect.provide(context)),
+        }),
+      )
   return {
     pre: resolve(pre),
     post: resolve(post),

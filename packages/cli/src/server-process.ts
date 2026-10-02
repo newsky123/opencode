@@ -1,3 +1,4 @@
+import type { ManagedRuntime } from "@opencode/server/managed-runtime"
 export * as ServerProcess from "./server-process"
 
 import { NodeServices } from "@effect/platform-node"
@@ -27,8 +28,8 @@ export type Options = {
 }
 
 // The process effect lives until server shutdown; tracing it would parent every request to one process-lifetime trace.
-export const run = Effect.fnUntraced(function* (options: Options) {
-  return yield* processEffect(options).pipe(
+export const run = Effect.fnUntraced(function* (options: Options, runtime?: ManagedRuntime.Runtime) {
+  return yield* processEffect(options, runtime).pipe(
     Effect.provide(
       LayerNode.compile(LayerNode.group([Global.node, AppProcess.node]), {
         replacements: [
@@ -42,7 +43,7 @@ export const run = Effect.fnUntraced(function* (options: Options) {
   )
 })
 
-const processEffect = Effect.fnUntraced(function* (options: Options) {
+const processEffect = Effect.fnUntraced(function* (options: Options, runtime?: ManagedRuntime.Runtime) {
   const inherited = process.env.OPENCODE_PTY_HANDOFF
   delete process.env.OPENCODE_PTY_HANDOFF
   const handoff =
@@ -140,6 +141,7 @@ const processEffect = Effect.fnUntraced(function* (options: Options) {
                 }),
             },
         transform,
+        runtime,
       ).pipe(
         Effect.catch((error) => {
           if (serviceOptions === undefined || port === undefined || !addressInUse(error)) return Effect.fail(error)
@@ -160,6 +162,7 @@ const processEffect = Effect.fnUntraced(function* (options: Options) {
       )
       if (server === undefined) return
       const url = HttpServer.formatAddress(server.address)
+      if (runtime) console.log(`openchamber capabilities ${JSON.stringify(runtime.capabilities)}`)
       console.log(options.mode === "stdio" ? JSON.stringify({ url }) : `server listening on ${url}`)
       if (foreground && !environmentPassword) console.log(`server password ${password}`)
       return yield* options.mode === "service"
